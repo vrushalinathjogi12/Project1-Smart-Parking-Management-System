@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+  <!-- LEFT SIDE: Forms & Recent Records -->
+  <div class="col-md-6">
+
+    <!-- Vehicle Entry -->
+    <div class="card mb-3">
+      <div class="card-header">Vehicle Entry</div>
+      <div class="card-body">
+        <form id="entryForm">
+          <div class="mb-2">
+            <label class="form-label">Vehicle Number</label>
+            <input class="form-control" name="number" id="entryNumber" placeholder="MH12DE1433">
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label">Vehicle Type</label>
+            <select class="form-select" id="entryType" name="vtype">
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="ev">EV</option>
+              <option value="heavy">Heavy</option>
+            </select>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="entryVip" name="vip">
+            <label class="form-check-label" for="entryVip">VIP</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Park Vehicle</button>
+        </form>
+
+        <div id="entryMsg" class="mt-2"></div>
+      </div>
+    </div>
+
+    <!-- Vehicle Exit -->
+    <div class="card mb-3">
+      <div class="card-header">Vehicle Exit</div>
+      <div class="card-body">
+        <form id="exitForm">
+          <div class="mb-2">
+            <label class="form-label">Vehicle Number</label>
+            <input class="form-control" name="number" id="exitNumber" placeholder="MH12DE1433">
+          </div>
+
+          <button class="btn btn-danger" type="submit">Process Exit</button>
+        </form>
+
+        <div id="exitMsg" class="mt-2"></div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card mb-3">
+      <div class="card-header">Quick Actions</div>
+      <div class="card-body">
+        <button class="btn btn-outline-secondary" id="btnStatus">Refresh Status</button>
+        <button class="btn btn-outline-success" id="btnRevenue">Today's Revenue</button>
+        <div id="quickInfo" class="p-2 mt-2"></div>
+      </div>
+    </div>
+
+    <!-- Recent Records -->
+    <div class="card">
+      <div class="card-header">Recent Records</div>
+      <div class="card-body">
+        <ul class="list-group" id="recentRecords">
+          <!-- Filled dynamically -->
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT SIDE: Parking Grid -->
+  <div class="col-md-6">
+  <h5>Parking Grid</h5>
+  <div id="slotGrid" class="slot-grid"></div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const slotGrid = document.getElementById("slotGrid");
+  const recentRecords = document.getElementById("recentRecords");
+  const quickInfo = document.getElementById("quickInfo");
+
+  async function refreshStatus() {
+    const res = await fetch("/api/status");
+    const data = await res.json();
+
+    // Update quick info
+    quickInfo.innerHTML = `<b>Status:</b> Occupied: ${data.occupied_count}, Free: ${data.free_count}, Total: ${data.total_slots}`;
+
+    // Build parking grid dynamically
+    let html = '<div class="row row-cols-4 g-3">';
+    for (let i = 1; i <= data.total_slots; i++) {
+      let vc = data.occupied.find(v => v.slot === i);
+      html += `<div class="col">
+        <div class="card h-100 ${vc ? "occupied" : "free"}">
+          <div class="card-body p-2 text-center">
+            <h6 class="slot-num">Slot ${i}</h6>
+            ${data.vip_slots.includes(i) ? '<span class="badge bg-warning text-dark">VIP</span>' : ''}
+            <div class="mt-2">
+              ${vc ? `<div class="small">${vc.vehicle_number}</div><div class="small text-muted">${vc.vtype}</div>` : '<div class="small text-success">FREE</div>'}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+    slotGrid.innerHTML = html;
+  }
+
+  async function showRevenue() {
+    const res = await fetch("/api/revenue");
+    const data = await res.json();
+
+    quickInfo.innerHTML = `<b>Revenue:</b> ₹ ${data.total_revenue} | Total Vehicles: ${data.total_vehicles}`;
+
+    // Update recent records
+    recentRecords.innerHTML = "";
+    data.records.slice(-10).reverse().forEach(r => {
+      const li = document.createElement("li");
+      li.className = "list-group-item";
+      li.innerHTML = `Slot ${r.slot} - ${r.vehicle_number} - ₹ ${r.fee} <div class="small text-muted">${r.exit || 'Pending'}</div>`;
+      recentRecords.appendChild(li);
+    });
+  }
+
+  // Auto-refresh every 5s
+  setInterval(() => {
+    refreshStatus();
+    showRevenue();
+  }, 5000);
+
+  // Initial load
+  refreshStatus();
+  showRevenue();
+});
+</script>
+
+
+{% endblock %}

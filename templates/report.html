@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+<h4>Daily Report</h4>
+<p>Report generation uses reportlab. Click Download to get PDF.</p>
+<a class="btn btn-primary" href="{{ url_for('report_pdf') }}">Download PDF</a>
+{% endblock %}

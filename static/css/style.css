@@ -1,0 +1,22 @@
+body {
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  min-height: 100vh;
+}
+.card.occupied {
+  background: linear-gradient(90deg, rgba(255,200,200,0.2), rgba(255,240,240,0.1));
+  border-left: 4px solid #dc3545;
+}
+.card.free {
+  background: linear-gradient(90deg, rgba(200,255,200,0.2), rgba(240,255,240,0.1));
+  border-left: 4px solid #198754;
+}
+.slot-num {
+  font-weight: 600;
+}
+.slot-grid .card {
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.slot-grid .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}

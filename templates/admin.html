@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row">
+  <div class="col-md-8">
+    <h4>Admin Dashboard</h4>
+    <p>
+      Total Slots: {{ status.total_slots }} |
+      Occupied: {{ status.occupied_count }} |
+      Free: {{ status.free_count }}
+    </p>
+
+    <div id="slotGridAdmin">
+      <div class="row">
+        {% for slot in range(1, status.total_slots + 1) %}
+          {% set vehicle = status.occupied | selectattr("slot", "equalto", slot) | list | first %}
+          <div class="col-2 mb-2">
+            <div class="card text-center {% if slot in status.vip_slots %}bg-warning{% endif %} {% if vehicle %}bg-danger text-white{% endif %}">
+              <div class="card-body p-2">
+                <strong>Slot {{ slot }}</strong><br>
+                {% if vehicle %}
+                  {{ vehicle.vehicle_number }}
+                {% else %}
+                  Free
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-3">
+      <div class="card-header">Today's Summary ({{ summary.date }})</div>
+      <div class="card-body">
+        <p>Total vehicles: {{ summary.total_vehicles }}</p>
+        <p>Total revenue: ₹ {{ summary.total_revenue }}</p>
+
+        {% if reportlab_available %}
+          <a class="btn btn-primary" href="{{ url_for('report_pdf') }}">Download PDF Report</a>
+        {% else %}
+          <p class="text-danger">PDF module not installed</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Recent Records</div>
+      <div class="card-body">
+        {% if summary.records %}
+          <ul class="list-group">
+            {% for r in summary.records[-10:] %}
+              <li class="list-group-item">
+                Slot {{ r.slot }} - {{ r.vehicle_number }} - ₹ {{ r.fee }}
+                <div class="small text-muted">{{ r.exit or 'Pending' }}</div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted">No records today.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

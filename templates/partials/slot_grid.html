@@ -1,0 +1,34 @@
+{# templates/partials/slot_grid.html #}
+<div class="slot-grid">
+  <div class="row row-cols-4 g-3">
+    {% for i in range(1, status['total_slots'] + 1) %}
+      {% set vc = None %}
+      {% for occ in status['occupied'] %}
+        {% if occ['slot'] == i %}
+          {% set vc = occ %}
+        {% endif %}
+      {% endfor %}
+
+      <div class="col">
+        <div class="card h-100 {% if vc %}occupied{% else %}free{% endif %}">
+          <div class="card-body p-2 text-center">
+            <h6 class="slot-num">Slot {{ i }}</h6>
+
+            {% if i in status['vip_slots'] %}
+              <span class="badge bg-warning text-dark">VIP</span>
+            {% endif %}
+
+            <div class="mt-2">
+              {% if vc %}
+                <div class="small fw-bold">{{ vc['vehicle_number'] }}</div>
+                <div class="small text-muted text-capitalize">{{ vc['vtype'] }}</div>
+              {% else %}
+                <div class="small text-success fw-bold">FREE</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
